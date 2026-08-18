@@ -1,0 +1,58 @@
+{
+  "cases": [
+    {
+      "id": "normal",
+      "label": "1. Normal Case",
+      "description": "All biomarkers within physiological limits — expect a low risk score and fast sign-off draft.",
+      "input": {
+        "age": 34,
+        "sex": "F",
+        "biomarkers": {
+          "hemoglobin": 13.2,
+          "wbc": 6.8,
+          "platelets": 260,
+          "glucose": 88,
+          "creatinine": 0.8,
+          "alt": 22
+        },
+        "impression_text": "No evidence of malignancy. All parameters within normal limits."
+      }
+    },
+    {
+      "id": "borderline",
+      "label": "2. Borderline Case",
+      "description": "One mildly deviated biomarker — expect a mid risk score routed for standard review.",
+      "input": {
+        "age": 52,
+        "sex": "F",
+        "biomarkers": {
+          "hemoglobin": 10.8,
+          "wbc": 7.5,
+          "platelets": 240,
+          "glucose": 94,
+          "creatinine": 0.9,
+          "alt": 28
+        },
+        "impression_text": "Mild anemia noted. Recommend clinical correlation and follow-up."
+      }
+    },
+    {
+      "id": "critical",
+      "label": "3. Critical Case",
+      "description": "Severe physiological deviation plus a critical NLP flag — expect a high risk score and senior escalation.",
+      "input": {
+        "age": 61,
+        "sex": "M",
+        "biomarkers": {
+          "hemoglobin": 7.9,
+          "wbc": 18.4,
+          "platelets": 95,
+          "glucose": 112,
+          "creatinine": 2.1,
+          "alt": 65
+        },
+        "impression_text": "Findings suspicious for malignancy. Blast cells noted on peripheral smear. Recommend urgent senior pathologist review."
+      }
+    }
+  ]
+}
