@@ -1,1 +1,61 @@
 @import "tailwindcss";
+
+@theme {
+  /* -- Clinical palette, drawn from H&E histology staining --
+     hematoxylin (violet-blue) stains nuclei, eosin (rose) stains
+     cytoplasm -- the two colors every pathologist reads all day. */
+  --color-paper: #F2F4F5;
+  --color-paper-dim: #E7EBED;
+  --color-panel: #FFFFFF;
+
+  --color-ink: #10151F;
+  --color-ink-soft: #4B5568;
+  --color-ink-faint: #8A93A3;
+
+  --color-hema: #4B2E83;
+  --color-hema-dark: #32205A;
+  --color-hema-light: #ECE6F7;
+  --color-hema-line: #D7CBEA;
+
+  --color-eosin: #BE2F63;
+  --color-eosin-dark: #931F4B;
+  --color-eosin-light: #FBE7EE;
+
+  --color-success: #1C7A4F;
+  --color-success-light: #E1F3E9;
+
+  --color-warn: #A56A11;
+  --color-warn-light: #FBF0DA;
+
+  --font-display: "Space Grotesk", "Segoe UI", sans-serif;
+  --font-sans: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Menlo, monospace;
+}
+
+* {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-hema);
+  outline-offset: 2px;
+}
+
+.font-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
