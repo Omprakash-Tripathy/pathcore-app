@@ -69,6 +69,13 @@ def build_draft_report(age, sex, biomarker_findings, nlp_flags, risk_score):
         phrases = ", ".join(sorted(set(f["phrase"] for f in active_nlp)))
         lines.append(f"Impression text flagged for: {phrases}.")
 
+    if len(abnormal) >= 2:
+        lines.append(
+            f"Note: {len(abnormal)} biomarkers are simultaneously abnormal, "
+            "which the risk score weights more heavily than a single "
+            "abnormal value alone."
+        )
+
     lines.append(
         "This is a system-generated draft for pathologist review. It is advisory only "
         "and carries no diagnostic authority until signed by a registered pathologist."
@@ -81,7 +88,7 @@ def run_pipeline(age, sex, biomarkers, impression_text):
     report. Shared by both /api/analyze and /api/batch-analyze so the
     two endpoints can never silently drift apart."""
     biomarker_findings = evaluate_biomarkers(age, sex, biomarkers)
-    bio_score, worst_finding = biomarker_severity_score(biomarker_findings)
+    bio_score, worst_finding, multi_param_note = biomarker_severity_score(biomarker_findings)
 
     nlp_flags = parse_impression(impression_text)
     nlp_score = nlp_severity_score(nlp_flags)
@@ -102,6 +109,7 @@ def run_pipeline(age, sex, biomarkers, impression_text):
         "nlp_flags": nlp_flags,
         "draft_report": draft_report,
         "statistical_model": ml_result,
+        "multi_parameter_note": multi_param_note,
         "disclaimer": (
             "Advisory only. This output does not constitute a diagnosis and requires "
             "mandatory review and sign-off by a registered pathologist before dispatch."

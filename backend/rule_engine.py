@@ -134,24 +134,54 @@ def evaluate_biomarkers(age, sex, biomarkers):
 
 def biomarker_severity_score(findings):
     """
-    Converts biomarker findings into a 0-6 sub-score contributing to the
-    overall 1-10 risk score, using each finding's z-score magnitude
-    rather than raw percent-deviation -- a value close to the edge of a
-    wide range is treated as less severe than one close to the edge of
-    a narrow range, which plain percent-deviation cannot distinguish.
+    Converts biomarker findings into a sub-score contributing to the
+    overall 1-10 risk score.
+
+    Two components, both explainable:
+    1. A 2/4/6-point bucket from the single WORST abnormal finding's
+       z-score magnitude (as before) -- a value close to the edge of a
+       wide range is treated as less severe than one close to the edge
+       of a narrow range, which plain percent-deviation cannot
+       distinguish.
+    2. A multi-parameter bonus of +1 per ADDITIONAL abnormal finding
+       beyond the worst one, capped at +3. This exists because looking
+       only at the single worst value treats "one biomarker is far out
+       of range" identically to "five biomarkers are simultaneously
+       far out of range" -- clinically, multiple systems failing at
+       once is more concerning than one, and the score should reflect
+       that rather than silently capping out on the first severe
+       finding.
     """
     if not findings:
-        return 0, None
+        return 0, None, None
 
     abnormal = [f for f in findings if f["status"] != "normal"]
     if not abnormal:
-        return 0, None
+        return 0, None, None
 
     worst = max(abnormal, key=lambda f: abs(f["z_score"]))
     z = abs(worst["z_score"])
 
     if z < 2.5:
-        return 2, worst
-    if z < 4.0:
-        return 4, worst
-    return 6, worst
+        base = 2
+    elif z < 4.0:
+        base = 4
+    else:
+        base = 6
+
+    extra_count = len(abnormal) - 1
+    bonus = min(3, extra_count)
+
+    note = None
+    if bonus > 0:
+        others = ", ".join(
+            f["label"] for f in abnormal if f is not worst
+        )
+        note = (
+            f"{len(abnormal)} biomarkers simultaneously abnormal "
+            f"({worst['label']} plus {others}) -- severity increased by "
+            f"{bonus} point{'s' if bonus != 1 else ''} to reflect "
+            f"multi-parameter derangement, not just the single worst value."
+        )
+
+    return base + bonus, worst, note

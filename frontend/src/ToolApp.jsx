@@ -71,10 +71,11 @@ function BiomarkerTable({ findings }) {
   );
 }
 
-function RuleTrace({ findings, nlpFlags, modelTrace }) {
+function RuleTrace({ findings, nlpFlags, modelTrace, multiParamNote }) {
   const traces = [
     ...findings.map((f) => f.rule_trace),
     ...nlpFlags.map((f) => f.rule_trace),
+    ...(multiParamNote ? [multiParamNote] : []),
     ...(modelTrace ? [modelTrace] : []),
   ];
   if (traces.length === 0) return null;
@@ -379,6 +380,7 @@ export default function ToolApp() {
                   findings={result.biomarker_findings}
                   nlpFlags={result.nlp_flags}
                   modelTrace={result.statistical_model?.model_trace}
+                  multiParamNote={result.multi_parameter_note}
                 />
 
                 <p className="text-xs text-muted border-t border-line pt-4">
