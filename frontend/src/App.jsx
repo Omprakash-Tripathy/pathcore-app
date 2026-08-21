@@ -1,26 +1,25 @@
 import { useState } from "react";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import LandingPage from "./pages/LandingPage";
-import AnalyzerPage from "./pages/AnalyzerPage";
+import Nav from "./Nav";
+import Landing from "./Landing";
+import ToolApp from "./ToolApp";
+import BatchUpload from "./BatchUpload";
+import AuditTrail from "./AuditTrail";
 
 export default function App() {
   const [view, setView] = useState("landing");
 
-  function navigate(next) {
+  function handleNavigate(next) {
     setView(next);
-    window.scrollTo({ top: 0, behavior: "auto" });
+    window.scrollTo({ top: 0, behavior: "instant" });
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-paper">
-      <Navbar view={view} onNavigate={navigate} />
-      {view === "landing" ? (
-        <LandingPage onLaunch={() => navigate("analyzer")} />
-      ) : (
-        <AnalyzerPage />
-      )}
-      <Footer />
+    <div className="min-h-screen bg-paper">
+      <Nav view={view} onNavigate={handleNavigate} />
+      {view === "landing" && <Landing onLaunch={() => handleNavigate("app")} />}
+      {view === "app" && <ToolApp />}
+      {view === "batch" && <BatchUpload />}
+      {view === "audit" && <AuditTrail />}
     </div>
   );
 }

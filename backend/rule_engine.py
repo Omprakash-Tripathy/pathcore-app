@@ -3,21 +3,28 @@ rule_engine.py
 Demographically-stratified clinical rule engine.
 
 Maps measured biomarker values against age/sex-adjusted physiological
-reference ranges. This is the core "explainable" logic behind the
-Report Accuracy & Physiological Deviation Flagging system — every
-number this file produces can be traced back to a specific rule.
+reference ranges, and computes a z-score-based severity for each one.
+This is the core "explainable" logic behind the Report Accuracy &
+Physiological Deviation Flagging system -- every number this file
+produces can be traced back to a specific rule.
 
 NOTE: The reference ranges below are simplified, illustrative values
 for a student capstone prototype. They are NOT validated for clinical
 use and must never be used on real patient data. A production version
-would source ranges from a validated clinical reference (e.g. Tietz,
-or the lab's own validated internal ranges) and would go through the
-NABL/ISO 15189 method-validation process described in the project's
-regulatory roadmap before being used on live reports.
-"""
+would source ranges (and their standard deviations) from a validated
+clinical reference (e.g. Tietz, or the lab's own validated internal
+ranges) and would go through the NABL/ISO 15189 method-validation
+process described in the project's regulatory roadmap before being
+used on live reports.
 
-# Each biomarker maps to a function that returns (low, high, unit)
-# given age (in years) and sex ("M" or "F").
+Z-SCORE NOTE: each reference range below is treated as the interval
+covering roughly the middle ~95% of a healthy population for that
+demographic bracket (a standard convention for "normal range" tables).
+That means mean = (low + high) / 2 and standard deviation =
+(high - low) / 4 (i.e. the range spans about +/- 2 SD). This is a
+transparent approximation, not a measured population SD -- it is
+disclosed here, in the rule trace, and in the Application Brief.
+"""
 
 def hemoglobin_range(age, sex):
     if age < 1:
@@ -71,7 +78,8 @@ def evaluate_biomarkers(age, sex, biomarkers):
     """
     biomarkers: dict like {"hemoglobin": 9.8, "wbc": 7.2, ...}
     Returns a list of finding dicts, one per biomarker that was supplied.
-    Each finding carries enough detail to build an explainable rule trace.
+    Each finding carries a z-score (see module docstring) and enough
+    detail to build an explainable rule trace.
     """
     findings = []
 
@@ -84,6 +92,10 @@ def evaluate_biomarkers(age, sex, biomarkers):
         rule = BIOMARKER_RULES[key]
         low, high, unit = rule["fn"](age, sex)
         value = float(value)
+
+        mean = (low + high) / 2
+        sd = (high - low) / 4
+        z_score = (value - mean) / sd if sd else 0.0
 
         if low <= value <= high:
             status = "normal"
@@ -102,14 +114,17 @@ def evaluate_biomarkers(age, sex, biomarkers):
             "reference_high": high,
             "status": status,               # normal | low | high
             "deviation_pct": round(deviation_pct, 1),
+            "z_score": round(z_score, 2),
             "rule_trace": (
                 f"{rule['label']} = {value} {unit}. Reference range for "
-                f"age {age}, sex {sex}: {low}-{high} {unit}. "
+                f"age {age}, sex {sex}: {low}-{high} {unit} "
+                f"(mean {mean:.1f}, approx SD {sd:.2f}). "
+                f"z = {z_score:.2f}. "
                 + (
                     "Within range."
                     if status == "normal"
                     else f"{'Below' if status == 'low' else 'Above'} range by "
-                         f"{round(deviation_pct, 1)}%."
+                         f"{round(deviation_pct, 1)}% ({abs(z_score):.1f} SD from mean)."
                 )
             ),
         })
@@ -120,8 +135,10 @@ def evaluate_biomarkers(age, sex, biomarkers):
 def biomarker_severity_score(findings):
     """
     Converts biomarker findings into a 0-6 sub-score contributing to the
-    overall 1-10 risk score. Severity scales with how far out of range
-    the most deviated parameter is.
+    overall 1-10 risk score, using each finding's z-score magnitude
+    rather than raw percent-deviation -- a value close to the edge of a
+    wide range is treated as less severe than one close to the edge of
+    a narrow range, which plain percent-deviation cannot distinguish.
     """
     if not findings:
         return 0, None
@@ -130,11 +147,11 @@ def biomarker_severity_score(findings):
     if not abnormal:
         return 0, None
 
-    worst = max(abnormal, key=lambda f: f["deviation_pct"])
-    pct = worst["deviation_pct"]
+    worst = max(abnormal, key=lambda f: abs(f["z_score"]))
+    z = abs(worst["z_score"])
 
-    if pct < 10:
+    if z < 2.5:
         return 2, worst
-    if pct < 25:
+    if z < 4.0:
         return 4, worst
     return 6, worst

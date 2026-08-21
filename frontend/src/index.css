@@ -1,61 +1,86 @@
 @import "tailwindcss";
 
 @theme {
-  /* -- Clinical palette, drawn from H&E histology staining --
-     hematoxylin (violet-blue) stains nuclei, eosin (rose) stains
-     cytoplasm -- the two colors every pathologist reads all day. */
-  --color-paper: #F2F4F5;
-  --color-paper-dim: #E7EBED;
-  --color-panel: #FFFFFF;
+  /* Core surfaces -- deep lab-at-night navy-black, not pure black.
+     "ink" is the primary TEXT color (light, since we're on a dark
+     background now) and "paper" is the page background -- keeping
+     the same semantic names as the original light theme means every
+     existing component (text-ink, bg-paper, bg-surface) just works
+     without being touched. */
+  --color-ink: #e8edf3;
+  --color-paper: #0a0f16;
+  --color-surface: #121a24;
+  --color-surface-raised: #161f2b;
+  --color-line: #263242;
+  --color-line-soft: #1a2431;
+  --color-muted: #8593a3;
 
-  --color-ink: #10151F;
-  --color-ink-soft: #4B5568;
-  --color-ink-faint: #8A93A3;
+  /* Clinical accent -- bioluminescent teal */
+  --color-teal: #2dd4bf;
+  --color-teal-deep: #14b8a6;
+  --color-teal-tint: #0f2e2c;
+  --color-teal-glow: #2dd4bf80;
 
-  --color-hema: #4B2E83;
-  --color-hema-dark: #32205A;
-  --color-hema-light: #ECE6F7;
-  --color-hema-line: #D7CBEA;
+  /* AI accent -- warm amber, deliberately distinct from clinical teal
+     so "this is AI-generated" is visually unmistakable at a glance */
+  --color-ai: #f0a93e;
+  --color-ai-deep: #d68f26;
+  --color-ai-tint: #2e2410;
+  --color-ai-glow: #f0a93e80;
 
-  --color-eosin: #BE2F63;
-  --color-eosin-dark: #931F4B;
-  --color-eosin-light: #FBE7EE;
+  --color-risk-low: #34d399;
+  --color-risk-low-tint: #10291f;
+  --color-risk-mid: #fbbf24;
+  --color-risk-mid-tint: #2c230c;
+  --color-risk-high: #f87171;
+  --color-risk-high-tint: #2c1414;
 
-  --color-success: #1C7A4F;
-  --color-success-light: #E1F3E9;
-
-  --color-warn: #A56A11;
-  --color-warn-light: #FBF0DA;
-
-  --font-display: "Space Grotesk", "Segoe UI", sans-serif;
-  --font-sans: "IBM Plex Sans", "Segoe UI", sans-serif;
-  --font-mono: "IBM Plex Mono", "SFMono-Regular", Menlo, monospace;
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
 }
 
-* {
+html {
   scroll-behavior: smooth;
 }
 
 body {
-  background: var(--color-paper);
-  color: var(--color-ink);
   font-family: var(--font-sans);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
 }
 
-:focus-visible {
-  outline: 2px solid var(--color-hema);
-  outline-offset: 2px;
+::selection {
+  background-color: var(--color-teal-tint);
+  color: var(--color-teal);
 }
 
-.font-tabular {
-  font-variant-numeric: tabular-nums;
+.bg-dot-grid {
+  background-image: radial-gradient(circle, #263242 1px, transparent 1px);
+  background-size: 22px 22px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+.glow-teal {
+  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.25), 0 8px 30px -8px rgba(45, 212, 191, 0.35);
+}
+
+.glow-ai {
+  box-shadow: 0 0 0 1px rgba(240, 169, 62, 0.3), 0 8px 40px -6px rgba(240, 169, 62, 0.45);
+}
+
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-3px) scale(1.035);
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(240, 169, 62, 0.3), 0 8px 40px -6px rgba(240, 169, 62, 0.45); }
+  50% { box-shadow: 0 0 0 1px rgba(240, 169, 62, 0.5), 0 8px 55px -4px rgba(240, 169, 62, 0.65); }
+}
+
+.pulse-ai {
+  animation: pulse-glow 3s ease-in-out infinite;
 }
